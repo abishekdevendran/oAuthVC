@@ -1,5 +1,6 @@
 require("dotenv").config();
 const { Server } = require("socket.io");
+const path = require("path");
 const express = require("express");
 const app = express();
 const server = require("http").createServer(app);
@@ -242,10 +243,9 @@ io.sockets.adapter.on("leave-room", (roomCode, id) => {
 
 //peer server logic here
 peerServer.on("connection", function (client) {
-  console.log("peer ",client.getId());
+  console.log("peer ", client.getId());
   // console.log(server._clients);
 });
-
 
 //static serve for production build
 if (process.env.NODE_ENV === "production") {
