@@ -30,7 +30,11 @@ const User = require("./helpers/User");
 
 app.use("/peerjs", peerServer);
 app.set("trust proxy", true);
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
