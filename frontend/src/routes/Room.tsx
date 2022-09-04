@@ -10,6 +10,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import SocketContext from "../contexts/SocketContext";
 import UserContext from "../contexts/UserContext";
 import { MediaConnection, Peer } from "peerjs";
+import { MdContentCopy, MdShare, MdCallEnd } from "react-icons/md";
 
 interface Player {
   id: number;
@@ -31,6 +32,18 @@ const Room = () => {
   const remoteRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream>();
   const [call, setCall] = useState<MediaConnection>();
+
+  const copyManager = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success("Room Link copied to clipboard");
+  };
+  const shareManager = () => {
+    navigator.share({
+      title: document.title,
+      text: "Come join your friends at oAuthVC!",
+      url: window.location.href,
+    });
+  };
 
   const roomJoinManager = () => {
     console.log(user);
@@ -192,22 +205,57 @@ const Room = () => {
 
   useLayoutEffect(() => {
     document.title = `Room | ${roomCode}`;
+    return ()=>{
+      stream?.getTracks().forEach(function (track) {
+        track.stop();
+      });
+    }
   }, []);
   return (
-    <div>
-      Room
-      {roomCode}
-      {players.map((player, index) => (
-        <div key={index}>
-          {player.uname}-{player.id}
+    <div className="room flex flex-col items-center text-center justify-around h-full w-full ">
+      <div className="bg-bg-secondary p-2 rounded-md">
+        <div className="flex flex-row justify-around items-center mb-5">
+          {navigator.share! && (
+            <button
+              className="copyButton bg-brand-primary text-brand-tertiary font-bold py-2 pl-2 pr-3 rounded-l-full hover:scale-110 transition-all"
+              onClick={shareManager}
+            >
+              <MdShare />
+            </button>
+          )}
+          <div className="copyField select-all text-center w-full bg-white h-max py-1">
+            {roomCode}
+          </div>
+          <button
+            className="copyButton bg-brand-primary text-brand-tertiary font-bold py-2 pl-2 pr-3 rounded-r-full hover:scale-110 transition-all"
+            onClick={copyManager}
+          >
+            <MdContentCopy />
+          </button>
         </div>
-      ))}
-      <div id="live">
-        <video id="remote-video" ref={remoteRef}></video>
-        <video id="local-video" ref={localRef}></video>
-        {/* <button id="end-call" onClick={}>
-          End Call
-        </button> */}
+        {players.map((player, index) => (
+          <div key={index}>
+            {index + 1}){player.uname}
+          </div>
+        ))}
+      </div>
+      <div
+        id="live"
+        className="flex items-center justify-center bg-bg-secondary p-2 rounded-md w-11/12"
+      >
+        <video
+          id="remote-video"
+          className="w-1/2 rounded-md"
+          ref={remoteRef}
+        ></video>
+        <video
+          id="local-video"
+          className="w-1/2 rounded-md"
+          ref={localRef}
+        ></video>
+      </div>
+      <div className="endcall bg-brand-primary p-8 rounded-full hover:scale-110 transition-all">
+        <MdCallEnd onClick={()=>navigate("/vc")}/>
       </div>
     </div>
   );

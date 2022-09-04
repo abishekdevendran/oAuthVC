@@ -8,6 +8,7 @@ import App from "./routes/App";
 import Lobby from "./routes/Lobby";
 import Login from "./routes/Login";
 import Room from "./routes/Room";
+import "./index.css"
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <UserContextProvider>
