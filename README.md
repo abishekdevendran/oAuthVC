@@ -33,3 +33,11 @@ Server software(Express) and js runtime env(NodeJS) for writing backend
 <p>
 Better implementation of webRTC which uses normal sockets in the implementation. Peer-Express server manage and connect peers, and they stream data and/or media through webRTC.
 </p>
+
+# Working Strategy
+
+<p>
+Authentication and Authorization Strategy: Username and password sent to backend, username and hashed passwords compared with mongoDB users, if authenticated, session created in local redis DB and cookie key set on client. SImilarly, google oAuth sends a request to third party with client key, returns user object, creates or compares user with mongoDB, sets session.<br>
+
+Rooms are managed in memory. Every disconnect or clearRoom event handled by socketIO work together till room is empty where a cleanup function is triggered in the backend. Room joins are limited to a max of 2 ppl to give the one2one call experience.
+</p>
