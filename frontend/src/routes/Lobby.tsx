@@ -49,14 +49,12 @@ const Lobby = () => {
     document.title = `Lobby | ${user?.name}`;
   }, []);
   return (
-    <div>
+    <div className="w-full h-full flex items-center justify-center">
       <form
         onSubmit={roomJoinHandler}
         className="max-w-sm rounded overflow-hidden shadow-lg text-center w-5/6 bg-bg-secondary p-5 py-9"
       >
-        <h1 className="text-4xl font-semibold text-primary mb-5">
-          Chain Reaction
-        </h1>
+        <h1 className="text-4xl font-semibold text-primary mb-5">Lobby</h1>
         <h2 className="text-xl font-semibold text-primary mb-5">Room Code:</h2>
         <input
           required
@@ -68,20 +66,20 @@ const Lobby = () => {
         />
         <div className="mt-5 flex items-center justify-center">
           <button
-            className="bg-brand-primary text-brand-tertiary font-bold py-2 px-4 rounded mx-2"
+            className="bg-brand-primary text-brand-tertiary font-bold py-2 px-4 rounded mx-2 h-16 hover:scale-110 transition-all"
             type="submit"
           >
             Join Room
           </button>
           <button
             onClick={roomCreateHandler}
-            className="bg-brand-primary text-brand-tertiary font-bold py-2 px-4 rounded mx-2"
+            className="bg-brand-primary text-brand-tertiary font-bold py-2 px-4 rounded mx-2 h-16 hover:scale-110 transition-all"
           >
             Create Room
           </button>
           <button
             onClick={logoutHandler}
-            className="bg-brand-primary text-brand-tertiary font-bold py-2 px-4 rounded mx-2"
+            className="bg-brand-primary text-brand-tertiary font-bold py-2 px-4 rounded mx-2 h-16 hover:scale-110 transition-all"
           >
             Logout
           </button>
