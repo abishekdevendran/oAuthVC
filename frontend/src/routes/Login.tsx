@@ -20,7 +20,7 @@ const Login = () => {
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
-          "Access-Control-Allow-Origin": "http://localhost:3000/",
+          "Access-Control-Allow-Origin": URL,
         },
         body: JSON.stringify({
           username: data.username,

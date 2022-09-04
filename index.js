@@ -139,7 +139,7 @@ app.get(
   "/auth/google/callback",
   passport.authenticate("google", { scope: ["profile"] }),
   (req, res) => {
-    res.redirect("http://localhost:3000");
+    res.redirect(URL);
   }
 );
 
