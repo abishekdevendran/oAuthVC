@@ -11,6 +11,7 @@ import SocketContext from "../contexts/SocketContext";
 import UserContext from "../contexts/UserContext";
 import { MediaConnection, Peer } from "peerjs";
 import { MdContentCopy, MdShare, MdCallEnd } from "react-icons/md";
+import { AiOutlineAudioMuted, AiOutlineAudio } from "react-icons/ai";
 
 interface Player {
   id: number;
@@ -32,6 +33,7 @@ const Room = () => {
   const remoteRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream>();
   const [call, setCall] = useState<MediaConnection>();
+  const [isMuted, setIsMuted] = useState([true,true]);
 
   const copyManager = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -128,7 +130,7 @@ const Room = () => {
 
   useEffect(() => {
     console.log("a");
-    const call = async() => {
+    const call = async () => {
       if (players.length === 2) {
         console.log("b");
         if (peer) {
@@ -148,7 +150,7 @@ const Room = () => {
             setStream(localStream);
             // peer.connect(players[1].id + "peervc");
             // make the call
-            console.log("caller stream:"+localStream!);
+            console.log("caller stream:" + localStream!);
             // peer.connect(players[0].id + "peervc");
             const call = peer.call(players[0].id + "peervc", localStream!);
             setCall(call);
@@ -156,20 +158,22 @@ const Room = () => {
             peer.on("call", async (call) => {
               console.log("getting call from: ", call.peer);
               const localStream =
-              await window.navigator.mediaDevices.getUserMedia({
+                await window.navigator.mediaDevices.getUserMedia({
                   video: true,
                   audio: true,
                 });
-                setStream(localStream);
-                console.log("localstream: ", localStream);
-                call.answer(localStream!);
-                setCall(call);
+              setStream(localStream);
+              console.log("localstream: ", localStream);
+              call.answer(localStream!);
+              setCall(call);
               call.on("stream", (remoteStream) => {
                 console.log("playing remote stream");
                 if (remoteRef.current) {
                   remoteRef.current!.srcObject = remoteStream;
                   if (remoteRef.current.paused) {
                     remoteRef.current.autoplay = true;
+                    isMuted[1] = true;
+                    localRef.current!.muted = true;
                   }
                 }
               });
@@ -191,6 +195,8 @@ const Room = () => {
           remoteRef.current!.srcObject = remoteStream;
           if (remoteRef.current.paused) {
             remoteRef.current!.autoplay = true;
+            isMuted[1] = true;
+            localRef.current!.muted = true;
           }
         }
       });
@@ -241,26 +247,56 @@ const Room = () => {
         id="live"
         className="flex items-center justify-center bg-bg-secondary p-2 rounded-md w-11/12"
       >
-        <video
-          id="remote-video"
-          className="w-1/2 rounded-md pr-1"
-          ref={remoteRef}
-        ></video>
-        <video
-          id="local-video"
-          className="w-1/2 rounded-md pl-1"
-          ref={localRef}
-        ></video>
+        <div className="w-1/2 vid containers pr-1">
+          <video
+            id="remote-video"
+            className="rounded-md w-full"
+            ref={remoteRef}
+          ></video>
+          {remoteRef.current?.autoplay===true && <div
+            className="bg-white rounded-full p-2 absolute -translate-y-10 translate-x-2 cursor-pointer"
+            onClick={() => {
+              console.log("clicked mute");
+              setIsMuted([!isMuted[0], isMuted[1]]);
+              if (remoteRef.current) {
+                remoteRef.current.muted = !remoteRef.current.muted;
+              }
+            }}
+          >
+            {!isMuted[0] ? <AiOutlineAudioMuted /> : <AiOutlineAudio />}
+          </div>}
+        </div>
+        <div className="w-1/2 vid containers pl-1">
+          <video
+            id="local-video"
+            className="rounded-md w-full"
+            ref={localRef}
+          ></video>
+          <div
+            className="bg-white rounded-full p-2 absolute -translate-y-10 translate-x-2 cursor-pointer"
+            onClick={() => {
+              console.log("clicked mute");
+              setIsMuted([isMuted[0], !isMuted[1]]);
+              if(localRef.current){
+                localRef.current.muted = !localRef.current.muted;
+              }
+            }}
+          >
+            {!isMuted[1] ? <AiOutlineAudioMuted /> : <AiOutlineAudio />}
+          </div>
+        </div>
       </div>
       <div className="endcall bg-brand-primary p-8 rounded-full hover:scale-110 transition-all">
-        <MdCallEnd onClick={()=>{
-          //end call
-          call?.close();
-          stream?.getTracks().forEach(function (track) {
-            track.stop();
-          });
-          navigate("/vc");
-          }}/>
+        <MdCallEnd
+          onClick={() => {
+            //end call
+            call?.close();
+            stream?.getTracks().forEach(function (track) {
+              track.stop();
+            });
+            navigate("/vc");
+          }}
+        />
       </div>
     </div>
   );
