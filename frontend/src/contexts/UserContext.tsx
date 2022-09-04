@@ -4,8 +4,8 @@ const UserContext = createContext<any>({});
 
 export const UserContextProvider = ({ children }) => {
   const URL = import.meta.env.PROD
-    ? window.location.hostname
-    : window.location.hostname + ":5000";
+    ? "https://"+window.location.hostname
+    : "http://"+window.location.hostname + ":5000";
   const [user, setUser] = useState({name:"",isLoggedIn:false});
 
   // const getUser = async () => {
@@ -24,7 +24,7 @@ export const UserContextProvider = ({ children }) => {
   useEffect(() => {
     const dataFetch=async () => {
       try {
-        const res = await fetch(`http://${URL}/api/getuser`, {
+        const res = await fetch(`${URL}/api/getuser`, {
           credentials: "include",
         });
         const data = await res.json();

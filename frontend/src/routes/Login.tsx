@@ -5,8 +5,8 @@ import UserContext from "../contexts/UserContext";
 
 const Login = () => {
   const URL = import.meta.env.PROD
-    ? window.location.hostname
-    : window.location.hostname + ":5000";
+    ? "https://" + window.location.hostname
+    : "http://" + window.location.hostname + ":5000";
   const { user, setUser } = useContext(UserContext);
   const [data, setData] = useState({ username: "", password: "" });
   const navigate=useNavigate();
@@ -14,7 +14,7 @@ const Login = () => {
     e.preventDefault();
     console.log(data);
     try {
-      const res = await fetch(`http://${URL}/api/login`, {
+      const res = await fetch(`${URL}/api/login`, {
         method: "POST",
         credentials: "include",
         headers: {

@@ -29,10 +29,10 @@ const Lobby = () => {
     console.log("logout");
     e.preventDefault();
     const URL = import.meta.env.PROD
-      ? window.location.hostname
-      : window.location.hostname + ":5000";
+      ? "https://"+window.location.hostname
+      : "http://"+window.location.hostname + ":5000";
     try {
-      fetch(`http://${URL}/auth/logout`, {
+      fetch(`${URL}/auth/logout`, {
         credentials: "include",
       });
       console.log("almost there");
