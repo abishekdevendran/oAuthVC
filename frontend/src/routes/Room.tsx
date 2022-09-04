@@ -63,29 +63,29 @@ const Room = () => {
           host: URL,
           port: port,
           path: "/peerjs",
-          config: {
-            iceServers: [
-              { url: "stun:stun01.sipphone.com" },
-              { url: "stun:stun.ekiga.net" },
-              { url: "stun:stunserver.org" },
-              { url: "stun:stun.softjoys.com" },
-              { url: "stun:stun.voiparound.com" },
-              { url: "stun:stun.voipbuster.com" },
-              { url: "stun:stun.voipstunt.com" },
-              { url: "stun:stun.voxgratia.org" },
-              { url: "stun:stun.xten.com" },
-              // {
-              //   url: "turn:192.158.29.39:3478?transport=udp",
-              //   credential: "JZEOEt2V3Qb0y27GRntt2u2PAYA=",
-              //   username: "28224511:1379330808",
-              // },
-              // {
-              //   url: "turn:192.158.29.39:3478?transport=tcp",
-              //   credential: "JZEOEt2V3Qb0y27GRntt2u2PAYA=",
-              //   username: "28224511:1379330808",
-              // },
-            ],
-          },
+          // config: {
+          //   iceServers: [
+          //     { url: "stun:stun01.sipphone.com" },
+          //     { url: "stun:stun.ekiga.net" },
+          //     { url: "stun:stunserver.org" },
+          //     { url: "stun:stun.softjoys.com" },
+          //     { url: "stun:stun.voiparound.com" },
+          //     { url: "stun:stun.voipbuster.com" },
+          //     { url: "stun:stun.voipstunt.com" },
+          //     { url: "stun:stun.voxgratia.org" },
+          //     { url: "stun:stun.xten.com" },
+          //     {
+          //       url: "turn:192.158.29.39:3478?transport=udp",
+          //       credential: "JZEOEt2V3Qb0y27GRntt2u2PAYA=",
+          //       username: "28224511:1379330808",
+          //     },
+          //     {
+          //       url: "turn:192.158.29.39:3478?transport=tcp",
+          //       credential: "JZEOEt2V3Qb0y27GRntt2u2PAYA=",
+          //       username: "28224511:1379330808",
+          //     },
+          //   ],
+          // },
           // debug: 3,
         })
       );
@@ -100,7 +100,6 @@ const Room = () => {
         audio: true,
       });
       setStream(stream);
-      console.log("stream: ", stream);
       if (localRef.current) {
         localRef.current!.srcObject = stream;
         localRef.current!.load();
@@ -129,33 +128,42 @@ const Room = () => {
 
   useEffect(() => {
     console.log("a");
-    const call = () => {
+    const call = async() => {
       if (players.length === 2) {
         console.log("b");
         if (peer) {
           console.log("c");
-          if (players[0].uname === user.name) {
+          if (players[1].uname === user.name) {
             console.log(
               "calling: ",
-              players[1].id + "peervc",
+              players[0].id + "peervc",
               " from: ",
-              players[0].id + "peervc"
+              players[1].id + "peervc"
             );
+            const localStream =
+              await window.navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: true,
+              });
+            setStream(localStream);
             // peer.connect(players[1].id + "peervc");
             // make the call
-            const call = peer.call(players[1].id + "peervc", stream!);
+            console.log("caller stream:"+localStream!);
+            // peer.connect(players[0].id + "peervc");
+            const call = peer.call(players[0].id + "peervc", localStream!);
             setCall(call);
           } else {
             peer.on("call", async (call) => {
               console.log("getting call from: ", call.peer);
               const localStream =
-                await window.navigator.mediaDevices.getUserMedia({
+              await window.navigator.mediaDevices.getUserMedia({
                   video: true,
                   audio: true,
                 });
-              setStream(localStream);
-              console.log("stream: ", localStream);
-              call.answer(localStream!);
+                setStream(localStream);
+                console.log("localstream: ", localStream);
+                call.answer(localStream!);
+                setCall(call);
               call.on("stream", (remoteStream) => {
                 console.log("playing remote stream");
                 if (remoteRef.current) {
@@ -170,13 +178,8 @@ const Room = () => {
         }
       }
     };
-    setTimeout(call, 1000);
-    return () => {
-      if (peer) {
-        peer.off("call");
-        console.log("peer off");
-      }
-    };
+    // setTimeout(call, 1000);
+    call();
   }, [peer, players, localRef, remoteRef]);
 
   useEffect(() => {
@@ -205,11 +208,6 @@ const Room = () => {
 
   useLayoutEffect(() => {
     document.title = `Room | ${roomCode}`;
-    return ()=>{
-      stream?.getTracks().forEach(function (track) {
-        track.stop();
-      });
-    }
   }, []);
   return (
     <div className="room flex flex-col items-center text-center justify-around h-full w-full ">
@@ -245,17 +243,24 @@ const Room = () => {
       >
         <video
           id="remote-video"
-          className="w-1/2 rounded-md"
+          className="w-1/2 rounded-md pr-1"
           ref={remoteRef}
         ></video>
         <video
           id="local-video"
-          className="w-1/2 rounded-md"
+          className="w-1/2 rounded-md pl-1"
           ref={localRef}
         ></video>
       </div>
       <div className="endcall bg-brand-primary p-8 rounded-full hover:scale-110 transition-all">
-        <MdCallEnd onClick={()=>navigate("/vc")}/>
+        <MdCallEnd onClick={()=>{
+          //end call
+          call?.close();
+          stream?.getTracks().forEach(function (track) {
+            track.stop();
+          });
+          navigate("/vc");
+          }}/>
       </div>
     </div>
   );
