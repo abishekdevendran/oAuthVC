@@ -129,7 +129,7 @@ passport.use(
           return done(null, false);
         }
         console.log("user validated");
-        done(null, user);
+        return done(null, user);
       });
     }
   )

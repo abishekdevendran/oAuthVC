@@ -12,6 +12,7 @@ import UserContext from "../contexts/UserContext";
 import { MediaConnection, Peer } from "peerjs";
 import { MdContentCopy, MdShare, MdCallEnd } from "react-icons/md";
 import { AiOutlineAudioMuted, AiOutlineAudio } from "react-icons/ai";
+import {BiVideoOff, BiVideo} from "react-icons/bi";
 
 interface Player {
   id: number;
@@ -33,7 +34,9 @@ const Room = () => {
   const remoteRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream>();
   const [call, setCall] = useState<MediaConnection>();
-  const [isMuted, setIsMuted] = useState([true,true]);
+  const [isMuted, setIsMuted] = useState([true, true]);
+  const [isBlinded, setIsBlinded] = useState([false,false]);
+  const [autoPlay, setAutoPlay] = useState(false);
 
   const copyManager = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -153,6 +156,7 @@ const Room = () => {
             console.log("caller stream:" + localStream!);
             // peer.connect(players[0].id + "peervc");
             const call = peer.call(players[0].id + "peervc", localStream!);
+            setAutoPlay(true);
             setCall(call);
           } else {
             peer.on("call", async (call) => {
@@ -164,17 +168,17 @@ const Room = () => {
                 });
               setStream(localStream);
               console.log("localstream: ", localStream);
+              setAutoPlay(true);
               call.answer(localStream!);
               setCall(call);
               call.on("stream", (remoteStream) => {
                 console.log("playing remote stream");
+                setAutoPlay(true);
                 if (remoteRef.current) {
                   remoteRef.current!.srcObject = remoteStream;
-                  if (remoteRef.current.paused) {
                     remoteRef.current.autoplay = true;
                     isMuted[1] = true;
                     localRef.current!.muted = true;
-                  }
                 }
               });
             });
@@ -189,25 +193,30 @@ const Room = () => {
   useEffect(() => {
     if (call) {
       console.log("last step debugging");
+      setAutoPlay(true);
       call.on("stream", (remoteStream) => {
         console.log("playing remote stream");
         if (remoteRef.current) {
           remoteRef.current!.srcObject = remoteStream;
-          if (remoteRef.current.paused) {
             remoteRef.current!.autoplay = true;
             isMuted[1] = true;
             localRef.current!.muted = true;
-          }
         }
       });
       call.on("error", (err) => {
         console.log(err);
       });
+      call.on("close", () => {
+        setAutoPlay(false);
+        remoteRef.current!.autoplay = false;
+      });
+      
     }
     return () => {
       if (call) {
         call.off("stream");
         call.off("error");
+        call.off("close");
       }
     };
   }, [call]);
@@ -247,25 +256,43 @@ const Room = () => {
         id="live"
         className="flex items-center justify-center bg-bg-secondary p-2 rounded-md w-11/12"
       >
-        <div className="w-1/2 vid containers pr-1">
-          <video
-            id="remote-video"
-            className="rounded-md w-full"
-            ref={remoteRef}
-          ></video>
-          {remoteRef.current?.autoplay===true && <div
-            className="bg-white rounded-full p-2 absolute -translate-y-10 translate-x-2 cursor-pointer"
-            onClick={() => {
-              console.log("clicked mute");
-              setIsMuted([!isMuted[0], isMuted[1]]);
-              if (remoteRef.current) {
-                remoteRef.current.muted = !remoteRef.current.muted;
-              }
-            }}
-          >
-            {!isMuted[0] ? <AiOutlineAudioMuted /> : <AiOutlineAudio />}
-          </div>}
-        </div>
+        {autoPlay && (
+          <>
+            <div className="w-1/2 vid containers pr-1">
+              <video
+                id="remote-video"
+                className="rounded-md w-full"
+                ref={remoteRef}
+              ></video>
+              <div
+                className="bg-white rounded-full p-2 absolute -translate-y-10 translate-x-2 cursor-pointer"
+                onClick={() => {
+                  console.log("clicked mute");
+                  setIsMuted([!isMuted[0], isMuted[1]]);
+                  if (remoteRef.current) {
+                    remoteRef.current.muted = !remoteRef.current.muted;
+                  }
+                }}
+              >
+                {!isMuted[0] ? <AiOutlineAudioMuted /> : <AiOutlineAudio />}
+              </div>
+              <div
+                className="bg-white rounded-full p-2 absolute -translate-y-10 translate-x-12 cursor-pointer"
+                onClick={() => {
+                  console.log("clicked blinded");
+                  setIsBlinded([!isBlinded[0], isBlinded[1]]);
+                  if (remoteRef.current) {
+                    remoteRef.current.paused
+                      ? remoteRef.current.play()
+                      : remoteRef.current.pause();
+                  }
+                }}
+              >
+                {!isBlinded[0] ? <BiVideo /> : <BiVideoOff />}
+              </div>
+            </div>
+          </>
+        )}
         <div className="w-1/2 vid containers pl-1">
           <video
             id="local-video"
@@ -277,26 +304,41 @@ const Room = () => {
             onClick={() => {
               console.log("clicked mute");
               setIsMuted([isMuted[0], !isMuted[1]]);
-              if(localRef.current){
+              if (localRef.current) {
                 localRef.current.muted = !localRef.current.muted;
               }
             }}
           >
             {!isMuted[1] ? <AiOutlineAudioMuted /> : <AiOutlineAudio />}
           </div>
+          <div
+            className="bg-white rounded-full p-2 absolute -translate-y-10 translate-x-12 cursor-pointer"
+            onClick={() => {
+              console.log("clicked blinded");
+              setIsBlinded([isBlinded[0], !isBlinded[1]]);
+              if (localRef.current) {
+                localRef.current.paused
+                  ? localRef.current.play()
+                  : localRef.current.pause();
+              }
+            }}
+          >
+            {!isBlinded[1] ? <BiVideo /> : <BiVideoOff />}
+          </div>
         </div>
       </div>
-      <div className="endcall bg-brand-primary p-8 rounded-full hover:scale-110 transition-all">
-        <MdCallEnd
-          onClick={() => {
-            //end call
-            call?.close();
-            stream?.getTracks().forEach(function (track) {
-              track.stop();
-            });
-            navigate("/vc");
-          }}
-        />
+      <div
+        className="endcall bg-brand-primary p-8 rounded-full hover:scale-110 transition-all cursor-pointer"
+        onClick={() => {
+          //end call
+          call?.close();
+          stream?.getTracks().forEach(function (track) {
+            track.stop();
+          });
+          navigate("/vc");
+        }}
+      >
+        <MdCallEnd size={20} />
       </div>
     </div>
   );
