@@ -49,6 +49,10 @@ app.use(passport.session());
 //   console.log(req.user);
 //   next();
 // })
+//set static serve production
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "frontend/dist")));
+}
 
 //temp db
 let users = [];
@@ -139,7 +143,11 @@ app.get(
   "/auth/google/callback",
   passport.authenticate("google", { scope: ["profile"] }),
   (req, res) => {
-    res.redirect(URL);
+    if (process.env.NODE_ENV === "production") {
+      res.sendFile(path.join(__dirname, "frontend/dist/index.html"));
+    } else {
+      res.redirect(URL);
+    }
   }
 );
 
@@ -251,9 +259,8 @@ peerServer.on("connection", function (client) {
   // console.log(server._clients);
 });
 
-//static serve for production build
+//catch all production build
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "frontend/dist")));
   app.get("*", function (req, res) {
     res.sendFile(path.join(__dirname, "frontend/dist/index.html"));
   });
