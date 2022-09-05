@@ -77,7 +77,7 @@ const Login = () => {
             </button>
             <button
               onClick={() =>
-                window.open("http://" + URL + "/auth/google", "_self")
+                window.open(+ URL + "/auth/google", "_self")
               }
               className="bg-brand-primary text-brand-tertiary font-bold py-2 px-4 rounded mx-2 hover:scale-110 transition-all"
             >
