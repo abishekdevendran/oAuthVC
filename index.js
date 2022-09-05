@@ -15,9 +15,10 @@ const bcrypt = require("bcrypt");
 const { sessionMiddleware } = require("./helpers/sessionHelper");
 const ExpressPeerServer = require("peer").ExpressPeerServer;
 const peerServer = ExpressPeerServer(server, { debug: true });
+//my dumbass was debugging with peervc.onrender.com :(
 const URL =
   process.env.NODE_ENV === "production"
-    ? "https://peervc.onrender.com"
+    ? "https://oauthvc.onrender.com"
     : "http://localhost:3000";
 const io = new Server(server, {
   /* options */
