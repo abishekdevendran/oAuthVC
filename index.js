@@ -143,11 +143,7 @@ app.get(
   "/auth/google/callback",
   passport.authenticate("google", { scope: ["profile"] }),
   (req, res) => {
-    if (process.env.NODE_ENV === "production") {
-      res.sendFile(path.join(__dirname, "frontend/dist/index.html"));
-    } else {
-      res.redirect(URL);
-    }
+    res.redirect(URL);
   }
 );
 
